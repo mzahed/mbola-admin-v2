@@ -41,9 +41,9 @@ export default function SignatureStatusModal({
     
     try {
       // Fetch certificate details which should include signature_details
-      const response = await certificatesAPI.getById(certificateId);
+      const response: any = await certificatesAPI.getById(certificateId);
       
-      if (response.success && response.data) {
+      if (response?.success && response?.data) {
         const cert = response.data;
         
         // Use signature_details if available, otherwise construct from available data

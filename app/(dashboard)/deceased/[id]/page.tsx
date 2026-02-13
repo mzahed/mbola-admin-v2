@@ -23,6 +23,7 @@ export default function DeceasedDetailPage() {
   const [isSendingCommunication, setIsSendingCommunication] = useState(false);
   const [burialFormData, setBurialFormData] = useState({
     cemetery: '',
+    grave_location: '',
     date_of_burial: '',
     burial_time: '',
     mbola_cemetery_lead: '',
@@ -34,7 +35,7 @@ export default function DeceasedDetailPage() {
     queryFn: () => deceasedAPI.getById(id),
   });
 
-  const deceased = data?.data;
+  const deceased = (data as any)?.data;
 
   // Generate community email HTML
   const generateCommunityEmailHTML = (deceased: any, relationships: any[]) => {
@@ -345,6 +346,7 @@ export default function DeceasedDetailPage() {
     if (deceased && !showBurialModal) {
       setBurialFormData({
         cemetery: deceased.cemetery || '',
+        grave_location: deceased.grave_location || '',
         date_of_burial: deceased.date_of_burial || '',
         burial_time: deceased.burial_time || '',
         mbola_cemetery_lead: deceased.mbola_cemetery_lead || '',
@@ -494,11 +496,14 @@ export default function DeceasedDetailPage() {
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     retry: false, // Don't retry if it fails
-    onSuccess: () => {
-      // Refresh deceased data after invoice status is updated
-      queryClient.invalidateQueries({ queryKey: ['deceased', id] });
-    },
   });
+
+  // Refresh deceased data when invoice status query succeeds
+  useEffect(() => {
+    if (invoiceStatusData) {
+      queryClient.invalidateQueries({ queryKey: ['deceased', id] });
+    }
+  }, [invoiceStatusData, queryClient, id]);
 
   const handleGenerateForms = async () => {
     console.log('Generate All Forms button clicked, deceased ID:', id);
@@ -508,9 +513,9 @@ export default function DeceasedDetailPage() {
 
     try {
       console.log('Calling deceasedAPI.generateForms with ID:', id);
-      const result = await deceasedAPI.generateForms(id);
+      const result: any = await deceasedAPI.generateForms(id);
       console.log('API response:', result);
-      if (result.success) {
+      if (result && result.success) {
         setGenerateSuccess(`Forms generated successfully! ${result.forms_count || 0} form(s) created.`);
         // Refresh the deceased data to show the new forms
         queryClient.invalidateQueries({ queryKey: ['deceased', id] });
@@ -547,9 +552,9 @@ export default function DeceasedDetailPage() {
     
     try {
       console.log('Calling deceasedAPI.verifyCertificate with:', { deceasedId: id, verified });
-      const response = await deceasedAPI.verifyCertificate(id, verified);
+      const response: any = await deceasedAPI.verifyCertificate(id, verified);
       console.log('verifyCertificate response:', response);
-      if (response.success) {
+      if (response && response.success) {
         setGenerateSuccess(verified ? 'Certificate verified successfully' : 'Certificate verification removed');
         // Refetch the deceased data to update the UI
         queryClient.invalidateQueries({ queryKey: ['deceased', id] });
@@ -610,7 +615,7 @@ export default function DeceasedDetailPage() {
 
     try {
       console.log('Calling deceasedAPI.generateForms with ID:', id);
-      const result = await deceasedAPI.generateForms(id);
+      const result: any = await deceasedAPI.generateForms(id);
       console.log('Full API response:', JSON.stringify(result, null, 2));
       console.log('API response type:', typeof result);
       console.log('API response success:', result?.success);
@@ -731,9 +736,10 @@ export default function DeceasedDetailPage() {
   }
   
   // Use latest invoice status from API if available
-  if (invoiceStatusData?.success && invoiceStatusData?.invoice_status) {
-    invoiceDetails.invoice_status = invoiceStatusData.invoice_status;
-    invoiceDetails.invoice_url = invoiceStatusData.invoice_url || invoiceDetails.invoice_url;
+  const invoiceStatus: any = invoiceStatusData;
+  if (invoiceStatus?.success && invoiceStatus?.invoice_status) {
+    invoiceDetails.invoice_status = invoiceStatus.invoice_status;
+    invoiceDetails.invoice_url = invoiceStatus.invoice_url || invoiceDetails.invoice_url;
   }
 
   return (
@@ -856,8 +862,8 @@ export default function DeceasedDetailPage() {
                           setGenerateError(null);
                           setGenerateSuccess(null);
                           try {
-                            const result = await deceasedAPI.sendInvoiceSMS(id);
-                            if (result.success) {
+                            const result: any = await deceasedAPI.sendInvoiceSMS(id);
+                            if (result && result.success) {
                               setGenerateSuccess('Invoice sent successfully via SMS!');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             } else {
@@ -1097,6 +1103,7 @@ export default function DeceasedDetailPage() {
                   cemetery: deceased.cemetery || '',
                   grave_location: deceased.grave_location || '',
                   date_of_burial: deceased.date_of_burial || '',
+                  burial_time: deceased.burial_time || '',
                   mbola_cemetery_lead: deceased.mbola_cemetery_lead || '',
                   prayer_talqeen_lead: deceased.prayer_talqeen_lead || '',
                 });
@@ -1290,8 +1297,8 @@ export default function DeceasedDetailPage() {
                 setGenerateSuccess(null);
                 
                 try {
-                  const result = await deceasedAPI.generateHeadstonePDF(id);
-                  if (result.success) {
+                  const result: any = await deceasedAPI.generateHeadstonePDF(id);
+                  if (result && result.success) {
                     setGenerateSuccess('Headstone PDF generated successfully!');
                     // Refresh the deceased data to show the new PDF
                     queryClient.invalidateQueries({ queryKey: ['deceased', id] });
@@ -1406,8 +1413,8 @@ export default function DeceasedDetailPage() {
                         setGenerateSuccess(null);
                         
                         try {
-                          const result = await deceasedAPI.sendCommunityCommunication(id);
-                          if (result.success) {
+                          const result: any = await deceasedAPI.sendCommunityCommunication(id);
+                          if (result && result.success) {
                             setGenerateSuccess('Community communication sent successfully! SMS sent to +17142274385');
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                           } else {
@@ -1477,8 +1484,8 @@ export default function DeceasedDetailPage() {
                   setGenerateSuccess(null);
 
                   try {
-                    const result = await deceasedAPI.updateBurialDetails(id, burialFormData);
-                    if (result.success) {
+                    const result: any = await deceasedAPI.updateBurialDetails(id, burialFormData);
+                    if (result && result.success) {
                       setGenerateSuccess('Burial details updated successfully!');
                       setShowBurialModal(false);
                       queryClient.invalidateQueries({ queryKey: ['deceased', id] });

@@ -37,7 +37,7 @@ export default function Header({ title }: { title: string }) {
                   {user.user_display || user.email || 'User'}
                 </div>
                 <div className="text-xs text-text-light">
-                  {user.user_type_display || user.user_type_title || ''}
+                  {user.user_type_display || ''}
                 </div>
               </div>
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">

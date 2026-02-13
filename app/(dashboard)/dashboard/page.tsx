@@ -45,7 +45,7 @@ export default function DashboardPage() {
     recent_certificates: RecentCertificate[];
   }>({
     queryKey: ['dashboard-stats'],
-    queryFn: () => dashboardAPI.getStats(),
+    queryFn: () => dashboardAPI.getStats() as Promise<any>,
     refetchOnWindowFocus: false,
   });
 

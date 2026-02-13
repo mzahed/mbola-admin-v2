@@ -41,8 +41,9 @@ export default function DashboardLayout({
         
         if (!isMounted) return;
         
-        if (response.success && response.user) {
-          setUser(response.user);
+        const authResponse: any = response;
+        if (authResponse?.success && authResponse?.user) {
+          setUser(authResponse.user);
           setIsCheckingAuth(false);
         } else {
           const latestUser = useAuthStore.getState().user;

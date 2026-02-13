@@ -33,11 +33,11 @@ export default function DocumentsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['documents', page, search, sortBy, sortOrder],
     queryFn: () => documentsAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
-  const documents = data?.data || [];
-  const pagination = data?.pagination;
+  const documents = (data as any)?.data || [];
+  const pagination = (data as any)?.pagination;
 
   const getStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -86,8 +86,8 @@ export default function DocumentsPage() {
     }
 
     try {
-      const result = await documentsAPI.sendDocuments(docId);
-      if (result.status === '1' || result.success) {
+      const result: any = await documentsAPI.sendDocuments(docId);
+      if (result?.status === '1' || result?.status === 1 || result?.success) {
         alert(result.message || 'Forms sent successfully.');
         queryClient.invalidateQueries({ queryKey: ['documents'] });
       } else {
@@ -104,8 +104,8 @@ export default function DocumentsPage() {
     }
 
     try {
-      const result = await documentsAPI.delete(docId);
-      if (result.status === '1' || result.success) {
+      const result: any = await documentsAPI.delete(docId);
+      if (result?.status === '1' || result?.status === 1 || result?.success) {
         alert('Document deleted successfully.');
         queryClient.invalidateQueries({ queryKey: ['documents'] });
       } else {

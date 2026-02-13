@@ -41,11 +41,11 @@ export default function CertificatesPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['certificates', page, search, sortBy, sortOrder],
     queryFn: () => certificatesAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
-  const certificates = data?.data || [];
-  const pagination = data?.pagination;
+  const certificates = (data as any)?.data || [];
+  const pagination = (data as any)?.pagination;
 
   const handleAdd = () => {
     setIsCreateMode(true);

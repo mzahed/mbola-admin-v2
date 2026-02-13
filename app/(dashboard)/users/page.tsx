@@ -27,11 +27,11 @@ export default function UsersPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['users', page, search, sortBy, sortOrder],
     queryFn: () => usersAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
-  const users = data?.data || [];
-  const pagination = data?.pagination;
+  const users = (data as any)?.data || [];
+  const pagination = (data as any)?.pagination;
 
   const getSortIcon = (field: SortField) => {
     if (sortBy !== field) {

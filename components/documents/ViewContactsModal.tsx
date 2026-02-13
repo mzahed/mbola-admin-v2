@@ -43,7 +43,7 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
           if (result.data && Array.isArray(result.data)) {
             console.log('Response has data array, length:', result.data.length);
             return result;
-          } else if (result.success && result.data && Array.isArray(result.data)) {
+          } else if ((result as any)?.success && (result as any)?.data && Array.isArray((result as any).data)) {
             console.log('Response has success.data array, length:', result.data.length);
             return result;
           }
@@ -66,7 +66,7 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
       contacts = contactsData;
     } else if (contactsData.data && Array.isArray(contactsData.data)) {
       contacts = contactsData.data;
-    } else if (contactsData.success && contactsData.data && Array.isArray(contactsData.data)) {
+    } else if ((contactsData as any)?.success && (contactsData as any)?.data && Array.isArray((contactsData as any).data)) {
       contacts = contactsData.data;
     }
   }
@@ -108,10 +108,10 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
       formData.append('contact_file', csvFile);
       formData.append('action', 'upload_contacts');
 
-      const result = await documentsAPI.uploadContacts(formData);
-
-      if (result.status === '1' || result.success) {
-        setSuccess(result.message || 'Contacts uploaded successfully.');
+      const result: any = await documentsAPI.uploadContacts(formData);
+      
+      if (result?.status === '1' || result?.status === 1 || result?.success) {
+        setSuccess(result?.message || 'Contacts uploaded successfully.');
         setCsvFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -119,7 +119,7 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
         refetch();
         queryClient.invalidateQueries({ queryKey: ['documents'] });
       } else {
-        setError(result.message || 'Failed to upload contacts.');
+        setError(result?.message || 'Failed to upload contacts.');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error uploading contacts. Please try again.');
@@ -148,15 +148,16 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
         custom_fields: customFieldsJson,
       });
 
-      if (result.status === '1' || result.success) {
-        setSuccess(result.message || 'Contact added successfully.');
+      const addResult: any = result;
+      if (addResult?.status === '1' || addResult?.status === 1 || addResult?.success) {
+        setSuccess(addResult.message || 'Contact added successfully.');
         setManualName('');
         setManualPhone('');
         setCustomFields({});
         refetch();
         queryClient.invalidateQueries({ queryKey: ['documents'] });
       } else {
-        setError(result.message || 'Failed to add contact.');
+        setError(addResult?.message || 'Failed to add contact.');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error adding contact. Please try again.');
@@ -175,14 +176,14 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
     setSuccess('');
 
     try {
-      const result = await documentsAPI.sendDocuments(documentId);
-
-      if (result.status === '1' || result.success) {
-        setSuccess(result.message || 'Forms sent successfully.');
+      const result: any = await documentsAPI.sendDocuments(documentId);
+      
+      if (result?.status === '1' || result?.status === 1 || result?.success) {
+        setSuccess(result?.message || 'Forms sent successfully.');
         refetch();
         queryClient.invalidateQueries({ queryKey: ['documents'] });
       } else {
-        setError(result.message || 'Failed to send forms.');
+        setError(result?.message || 'Failed to send forms.');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error sending forms. Please try again.');
@@ -203,11 +204,12 @@ export default function ViewContactsModal({ isOpen, onClose, documentId, documen
     try {
       const result = await documentsAPI.sendReminders(documentId);
 
-      if (result.status === '1' || result.success) {
-        setSuccess(result.message || 'Reminders sent successfully.');
+      const sendResult: any = result;
+      if (sendResult?.status === '1' || sendResult?.status === 1 || sendResult?.success) {
+        setSuccess(sendResult?.message || 'Reminders sent successfully.');
         refetch();
       } else {
-        setError(result.message || 'Failed to send reminders.');
+        setError(sendResult?.message || 'Failed to send reminders.');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error sending reminders. Please try again.');

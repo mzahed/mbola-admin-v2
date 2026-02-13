@@ -25,13 +25,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authAPI.login(email, password);
+      const response: any = await authAPI.login(email, password);
       
-      if (response.success) {
+      if (response && response.success) {
         setUser(response.user);
         router.push('/dashboard');
       } else {
-        setError(response.message || 'Login failed');
+        setError(response?.message || 'Login failed');
       }
     } catch (err: any) {
       // Handle different error formats

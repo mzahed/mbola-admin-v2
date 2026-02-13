@@ -35,11 +35,11 @@ export default function DeceasedPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['deceased', page, search, sortBy, sortOrder],
     queryFn: () => deceasedAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
-  const deceased = data?.data || [];
-  const pagination = data?.pagination;
+  const deceased = (data as any)?.data || [];
+  const pagination = (data as any)?.pagination;
 
   const handleDelete = (deceasedId: number, deceasedName: string) => {
     setDeletingDeceasedId(deceasedId);

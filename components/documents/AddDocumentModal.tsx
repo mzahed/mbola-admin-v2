@@ -59,9 +59,9 @@ export default function AddDocumentModal({ isOpen, onClose, onSuccess }: AddDocu
       formData.append('document_name', documentName.trim());
       formData.append('document_file', file);
 
-      const result = await documentsAPI.create(formData);
-
-      if (result.status === '1' || result.success) {
+      const result: any = await documentsAPI.create(formData);
+      
+      if (result?.status === '1' || result?.status === 1 || result?.success) {
         onSuccess();
         handleClose();
       } else {
