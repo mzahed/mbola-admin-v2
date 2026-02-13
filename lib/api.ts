@@ -230,4 +230,13 @@ export const documentsAPI = {
 export const usersAPI = {
   getAll: (params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: string }) =>
     api.get('/users', { params }),
+  create: (data: { user_display: string; email: string; user_type_id: number; password?: string; is_active?: number }) =>
+    api.post('/create_user', data),
+  getUserTypes: () =>
+    api.get('/user_types'),
+};
+
+export const auditAPI = {
+  getAll: (params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortOrder?: string }) =>
+    api.get('/audit', { params }),
 };

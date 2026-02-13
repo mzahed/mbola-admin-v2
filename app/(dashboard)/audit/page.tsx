@@ -1,39 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/layout/Header';
-import { usersAPI } from '@/lib/api';
-import AddUserModal from '@/components/users/AddUserModal';
+import { auditAPI } from '@/lib/api';
 
-type SortField = 'user_type_title' | 'user_display' | 'email';
+type SortField = 'message' | 'log' | 'email' | 'date_update';
 type SortOrder = 'asc' | 'desc';
 
-export default function UsersPage() {
+export default function AuditPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<SortField>('user_display');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const [sortBy, setSortBy] = useState<SortField>('date_update');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const handleSort = (field: SortField) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(field);
-      setSortOrder('asc');
+      setSortOrder('desc');
     }
     setPage(1);
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['users', page, search, sortBy, sortOrder],
-    queryFn: () => usersAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
+    queryKey: ['audit', page, search, sortBy, sortOrder],
+    queryFn: () => auditAPI.getAll({ page, limit: 25, search, sortBy, sortOrder }),
     placeholderData: (previousData) => previousData,
   });
 
-  const users = (data as any)?.data || [];
+  const auditLogs = (data as any)?.data || [];
   const pagination = (data as any)?.pagination;
 
   const getSortIcon = (field: SortField) => {
@@ -41,7 +38,7 @@ export default function UsersPage() {
       return (
         <span className="text-gray-400">
           <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m4 4l-4-4" />
           </svg>
         </span>
       );
@@ -61,16 +58,33 @@ export default function UsersPage() {
     );
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <>
-      <Header title="Users" />
+      <Header title="Audit Trail" />
       <div className="p-6">
-        {/* Search and Add User Button */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex-1 max-w-md">
+        {/* Search */}
+        <div className="mb-6">
+          <div className="max-w-md">
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder="Search by message, log, or email..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -79,15 +93,6 @@ export default function UsersPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
-          >
-            <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add User
-          </button>
         </div>
 
         {isLoading ? (
@@ -96,19 +101,19 @@ export default function UsersPage() {
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            <p className="font-semibold">Error loading users</p>
+            <p className="font-semibold">Error loading audit trail</p>
             <p className="text-xs mt-2">
               {error instanceof Error ? error.message : String(error)}
             </p>
             <p className="text-xs mt-1 text-red-600">
-              {error instanceof Error && error.message.includes('403') 
-                ? 'Access denied. Only chairman can view users.' 
+              {error instanceof Error && error.message.includes('403')
+                ? 'Access denied. Only admin and chairman can view audit trail.'
                 : 'Please check your connection and try again.'}
             </p>
           </div>
         ) : (
           <>
-            {/* Users Table */}
+            {/* Audit Trail Table */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -116,20 +121,11 @@ export default function UsersPage() {
                     <tr>
                       <th
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('user_type_title')}
+                        onClick={() => handleSort('date_update')}
                       >
                         <div className="flex items-center gap-2">
-                          User Type
-                          {getSortIcon('user_type_title')}
-                        </div>
-                      </th>
-                      <th
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('user_display')}
-                      >
-                        <div className="flex items-center gap-2">
-                          Display Name
-                          {getSortIcon('user_display')}
+                          Date & Time
+                          {getSortIcon('date_update')}
                         </div>
                       </th>
                       <th
@@ -137,44 +133,57 @@ export default function UsersPage() {
                         onClick={() => handleSort('email')}
                       >
                         <div className="flex items-center gap-2">
-                          Email
+                          User Email
                           {getSortIcon('email')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('message')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Message
+                          {getSortIcon('message')}
+                        </div>
+                      </th>
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('log')}
+                      >
+                        <div className="flex items-center gap-2">
+                          Log Details
+                          {getSortIcon('log')}
+                        </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {users.length === 0 ? (
+                    {auditLogs.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                          No users found
+                          No audit logs found
                         </td>
                       </tr>
                     ) : (
-                      users.map((user: any) => (
-                        <tr key={user.id || user.email} className="hover:bg-gray-50">
+                      auditLogs.map((log: any) => (
+                        <tr key={log.id || `${log.date_update}-${log.email}`} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-text-dark">
-                            {user.user_type_title || user.user_type_display || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-dark">
-                            {user.user_display || user.email || 'N/A'}
+                            {formatDate(log.date_update)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-text-light">
-                            {user.email || 'N/A'}
+                            {log.email || 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                user.is_active === 1 || user.is_active === true
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {user.is_active === 1 || user.is_active === true ? 'Active' : 'Inactive'}
-                            </span>
+                          <td className="px-6 py-4 text-sm text-text-dark">
+                            <div className="max-w-md">
+                              {log.message || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-text-light">
+                            <div className="max-w-lg">
+                              <pre className="whitespace-pre-wrap font-mono text-xs bg-gray-50 p-2 rounded border">
+                                {log.log || 'N/A'}
+                              </pre>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -269,15 +278,6 @@ export default function UsersPage() {
           </>
         )}
       </div>
-
-      {/* Add User Modal */}
-      <AddUserModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['users'] });
-        }}
-      />
     </>
   );
 }
